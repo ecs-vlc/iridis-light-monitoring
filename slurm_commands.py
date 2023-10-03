@@ -344,7 +344,8 @@ def aggregate_user_info(conn_manager: RemoteConnectionManager) -> dict:
 
 def filter_users_with_no_GPU_usage(info: dict) -> dict:
     """Keeps only the bad users"""
-    return {user: user_info for user, user_info in info.items() if user_info['gpu_allocated'] == 0}
+    return {user: user_info for user, user_info in info.items() if user_info['gpu_allocated'] == 0
+            and user_info['gpu_locked'] != 0}
 
 
 def filter_users_with_partial_GPU_usage(info: dict) -> dict:
