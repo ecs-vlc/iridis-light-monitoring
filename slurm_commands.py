@@ -10,7 +10,8 @@ from typing import List
 
 IRIDIS_ADDRESS = "iridis5_a.soton.ac.uk"
 USERID = "ii1g17"
-IRIDIS_SSH_KEY = os.path.expanduser("/Users/ioan/.ssh/iridis5")
+#IRIDIS_SSH_KEY = os.path.expanduser("/Users/ioan/.ssh/iridis5")
+IRIDIS_SSH_KEY = os.path.expanduser("/root/.ssh/iridis5")
 
 PARTION_TO_NODE = {"ecsstaff": ["alpha51", "alpha52", "alpha53"],
                    "ecsall": ["alpha54", "alpha55", "alpha56"],
