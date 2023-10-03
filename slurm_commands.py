@@ -10,8 +10,8 @@ from typing import List
 
 IRIDIS_ADDRESS = "iridis5_a.soton.ac.uk"
 USERID = "ii1g17"
-#IRIDIS_SSH_KEY = os.path.expanduser("/Users/ioan/.ssh/iridis5")
-IRIDIS_SSH_KEY = os.path.expanduser("/root/.ssh/iridis5")
+IRIDIS_SSH_KEY = os.path.expanduser("/Users/ioan/.ssh/iridis5")
+#IRIDIS_SSH_KEY = os.path.expanduser("/root/.ssh/iridis5")
 
 PARTION_TO_NODE = {"ecsstaff": ["alpha51", "alpha52", "alpha53"],
                    "ecsall": ["alpha54", "alpha55", "alpha56"],
@@ -158,9 +158,10 @@ def get_job_info(job_info: str, conn_manager: RemoteConnectionManager) -> dict:
 
 
 def get_job_allocated_GPU(job_info: dict) -> int:
-    if "gres/gpu=" not in job_info["TRES"]:
+
+    if "gres/gpu=" not in job_info["AllocTRES"]:
         return 0
-    return int(job_info["TRES"].split("gres/gpu=")[1])
+    return int(job_info["AllocTRES"].split("gres/gpu=")[1])
 
 
 # -------------------------------------------User Info----------------------------------------------
