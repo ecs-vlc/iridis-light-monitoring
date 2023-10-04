@@ -1,0 +1,13 @@
+[Unit]
+Description=Gunicorn instance to serve iridis-ligt-monitoring flask app
+After=network.target
+
+[Service]
+User=ii1g17
+Group=www-data
+WorkingDirectory=/home/ii1g17/iridis-light-monitoring
+Environment="PATH=/home/ii1g17/env/iridis-light-monitoring/bin"
+ExecStart=/home/ii1g17/env/iridis-light-monitoring/bin/gunicorn --workers 3 --bind 0.0.0.0:5000  wsgi:app --timeout 600
+
+[Install]
+WantedBy=multi-user.target
