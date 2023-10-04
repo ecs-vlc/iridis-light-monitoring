@@ -56,4 +56,4 @@ def index():
                            last_update_time=data['last_update_time'])
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run()
