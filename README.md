@@ -8,3 +8,9 @@ In the case that resources can be locked by a user and not actually being used, 
 
 ![alt text](https://github.com/ecs-vlc/iridis-light-monitoring/blob/main/media/front-end-example-0.png)
 ![alt text](https://github.com/ecs-vlc/iridis-light-monitoring/blob/main/media/front-end-example-0.png)
+
+Things to do in the future:
+  1. Create a dummy user to connect to iridis5.
+  2. Talk to isolutions to setup a DNS address, sth like: iridis-light-monitoring.ecs.soton.ac.uk
+  3. Add more stuff and improve the code.
+
