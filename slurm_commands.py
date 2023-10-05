@@ -67,7 +67,7 @@ def memory_string_to_GB(memory_string: str) -> float:
             return round(float(memory_string.replace(unit, '')) * multiplier, 1)
 
     # Default to MB if no unit is specified
-    return round(float(memory_string) * 1e-3, 1)
+    return round(float(memory_string.replace('M', '')) * 1e-3, 1)
 
 
 # -------------------------------------------Node Info-------------------------------------------
