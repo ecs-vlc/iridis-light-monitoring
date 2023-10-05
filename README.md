@@ -13,4 +13,5 @@ Things to do in the future:
   1. Create a dummy user to connect to iridis5.
   2. Talk to isolutions to setup a DNS address, sth like: iridis-light-monitoring.ecs.soton.ac.uk
   3. Add more stuff and improve the code.
+  4. Improve the interface. For example on mobile, it looks a bit weird.
 
