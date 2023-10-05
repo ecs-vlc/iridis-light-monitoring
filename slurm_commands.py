@@ -59,6 +59,10 @@ def parse_scontrol_output(output: str) -> dict:
 
 def memory_string_to_GB(memory_string: str) -> float:
     """Converts the memory string to GB"""
+
+    if memory_string == "":
+        return 0
+
     memory_string = memory_string.strip().upper()
     multipliers = {'G': 1, 'M': 1e-3, 'K': 1e-6, 'T': 1e3}
 
@@ -68,6 +72,8 @@ def memory_string_to_GB(memory_string: str) -> float:
 
     # Default to MB if no unit is specified
     return round(float(memory_string.replace('M', '')) * 1e-3, 1)
+
+
 
 
 # -------------------------------------------Node Info-------------------------------------------
@@ -229,7 +235,7 @@ def get_partition_queue_job_info(partition_name: str,
                                  attribute: str,
                                  job_state: str = "RUNNING"):
     output = conn_manager.run_command(f'squeue --noheader -p {partition_name} -t {job_state} --Format {attribute}')
-    return [o.strip() for o in output.strip().split("\n")]
+    return [o.strip() for o in output.strip().split("\n") if o.strip() != ""]
 
 
 def get_partition_CPU_cores_info(partition_name: str,
