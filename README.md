@@ -7,7 +7,7 @@ The implementation assumes some fixed parameters such as maximum resource availa
 In the case that resources can be locked by a user and not actually being used, this can be monitored too. This is when a job requests resources from a node containing GPUs, but does not actually use them.
 
 ![alt text](https://github.com/ecs-vlc/iridis-light-monitoring/blob/main/media/front-end-example-0.png)
-![alt text](https://github.com/ecs-vlc/iridis-light-monitoring/blob/main/media/front-end-example-0.png)
+![alt text](https://github.com/ecs-vlc/iridis-light-monitoring/blob/main/media/front-end-example-1.png)
 
 Things to do in the future:
   1. Create a dummy user to connect to iridis5.
