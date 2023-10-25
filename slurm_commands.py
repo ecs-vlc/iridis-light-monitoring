@@ -45,7 +45,9 @@ class RemoteConnectionManager:
     def run_command(self, command):
         try:
             if not self.connection.is_connected:
-                self.connection = self._establish_connection()
+                # we need to kill the current session so we don't consume all possbile connections
+                self.connection.close()
+                self.connection = self._establish_connection()  # Establish a new connection
             return self.connection.run(command, hide=True).stdout
         except Exception as e:
             print(f"Error: {e}")
