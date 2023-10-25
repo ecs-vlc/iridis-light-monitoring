@@ -34,7 +34,7 @@ def update_data():
 
 # Schedule the data update based on the office hours schedule
 scheduler = BackgroundScheduler()
-# one job for 9-17 office hours every 5 minutes
+# one job for 9-17 office hours every 15 minutes
 scheduler.add_job(update_data, 'cron', hour='9-17', minute='*/15')
 # for the rest of the day every 1 hour
 scheduler.add_job(update_data, 'cron', hour='0-8,18-23', minute='0')
