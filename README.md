@@ -17,3 +17,10 @@ Things to do in the future:
   3. Add more stuff and improve the code.
   4. Improve the interface. For example on mobile, it looks a bit weird.
 
+
+If the app does not work:
+  1. ssh into degas@soton.ac.uk
+  2. Inspect the output: `journalctl -u iridis-light-monitoring.service --no-pager`
+  3. Make the code changes needed.
+  4. Restart the service : `sudo systemctl restart iridis-light-monitoring.service`
+
