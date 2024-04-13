@@ -245,7 +245,8 @@ def get_partition_CPU_cores_info(partition_name: str,
                                  resource_state: str) -> int:
     cpu_info = conn_manager.run_command(f'sinfo --noheader -p {partition_name} --Format CPUsState')
 
-    allocated, idle, other, total = map(int, [c for c in cpu_info.strip().split("/") if c != ""])
+    allocated, idle, other, total = [int(c) if c != "" else 0 for c in cpu_info.strip().split("/")]
+                                   
 
     resource_state_map = {
         "ALLOCATED": allocated,
