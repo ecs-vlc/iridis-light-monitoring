@@ -13,16 +13,16 @@ USERID = "ii1g17"
 #IRIDIS_SSH_KEY = os.path.expanduser("/Users/ioan/.ssh/iridis5")
 IRIDIS_SSH_KEY = os.path.expanduser("/home/ii1g17/iridis-light-monitoring/iridis5")
 
-PARTION_TO_NODE = {"ecsstaff": ["alpha51", "alpha52", "alpha53"],
+PARTITION_TO_NODE = {"ecsstaff": ["alpha51", "alpha52", "alpha53"],
                    "ecsall": ["alpha54", "alpha55", "alpha56"],
                    "gpu": [f"indigo{i}" for i in range(51, 61)],
                    "gtx1080": [f"pink{i}" for i in range(51, 61)]}
 
-PARTION_TO_NODE_NAME = {"ecsstaff": "alpha",
+PARTITION_TO_NODE_NAME = {"ecsstaff": "alpha",
                         'gpu': 'indigo',
                         'gtx1080': 'pink'}
 
-NODE_NAME_TO_PARTITION = {v: k for k, v in PARTION_TO_NODE_NAME.items()}
+NODE_NAME_TO_PARTITION = {v: k for k, v in PARTITION_TO_NODE_NAME.items()}
 
 NODE_MAX_RES = {"alpha": {"CPU": 64, "RAM": 371, "GPU": 4},
                 "indigo": {"CPU": 40, "RAM": 187.5, "GPU": 2},
@@ -32,7 +32,6 @@ PARTITION_MAX_RES = {"ecsstaff": {"CPU": 64 * 3, "RAM": 371 * 3, "GPU": 4 * 3},
                      "ecsall": {"CPU": 64 * 3, "RAM": 371 * 3, "GPU": 4 * 3},
                      "gpu": {"CPU": 40 * 10, "RAM": 187.5 * 10, "GPU": 2 * 10},
                      "gtx1080": {"CPU": 56 * 10, "RAM": 125 * 10, "GPU": 4 * 10}}
-
 
 class RemoteConnectionManager:
     def __init__(self):
@@ -51,8 +50,23 @@ class RemoteConnectionManager:
             return self.connection.run(command, hide=True).stdout
         except Exception as e:
             print(f"Error: {e}")
-            return ""
+            return None
 
+def check_node_still_exists(node_name: str, conn_manager: RemoteConnectionManager) -> bool:
+    """Check if a node exists on the remote system."""
+    output = conn_manager.run_command(f"scontrol show node {node_name}")
+    if isinstance(output, str) and "not found" not in output:
+        return True 
+    return False
+
+def filter_existing_nodes(partition_to_node_dict, conn_manager):
+    filtered_partition_to_node = {}
+
+    for part_name, node_list in partition_to_node_dict.items():
+        filtered_node_list = [node_name for node_name in node_list if check_node_still_exists(node_name, conn_manager)]
+        filtered_partition_to_node[part_name] = filtered_node_list
+    print("Filtered:", filtered_partition_to_node)
+    return filtered_partition_to_node
 
 def parse_scontrol_output(output: str) -> dict:
     return dict(pair.split("=", maxsplit=1) for line in output.split('\n')
@@ -213,7 +227,7 @@ def get_user_allocated_GPU_on_partition(partition_name: str,
     """
     if partition_name in ["gpu", "gtx1080"] and locked_usage:
         return len(get_user_allocated_nodes_on_partition(partition_name, conn_manager, username)) * \
-            NODE_MAX_RES[PARTION_TO_NODE_NAME[partition_name]]["GPU"]
+            NODE_MAX_RES[PARTITION_TO_NODE_NAME[partition_name]]["GPU"]
     else:
         running_jobs = get_user_job_ids_on_partition(partition_name, conn_manager, username)
         return sum([get_job_allocated_GPU(get_job_info(job_id, conn_manager)) for job_id in running_jobs])
@@ -262,7 +276,7 @@ def get_partition_allocated_GPU(partition_name: str,
                                 locked_usage: bool = False) -> int:
     """Can't find a way to get this number directly, so we are iterating through all the nodes"""
     return sum([get_node_allocated_GPU(get_node_info(node, conn_manager), locked_usage=locked_usage)
-                for node in PARTION_TO_NODE[partition_name]])
+                for node in PARTITION_TO_NODE[partition_name]])
 
 
 def get_partition_allocated_RAM(partition_name: str,
@@ -282,16 +296,19 @@ def calculate_percentage(numerator, denominator):
 def aggregate_partition_info(conn_manager: RemoteConnectionManager, locked_usage: bool = True) -> dict:
     """Gets all the information about all GPU partitions and returns it as a dictionary.
     This is needed to populate the front end"""
+    
+    global PARTITION_TO_NODE
 
     info = defaultdict(dict)
-    for p in PARTION_TO_NODE.keys():
+    PARTITION_TO_NODE = filter_existing_nodes(PARTITION_TO_NODE, conn_manager)
+    for p in PARTITION_TO_NODE.keys():
 
         info[p] = {'cpu_free': get_partition_CPU_cores_info(p, conn_manager, "idle"),
                    'cpu_total': get_partition_CPU_cores_info(p, conn_manager, "total"),
                    'ram_free': max(round((PARTITION_MAX_RES[p]['RAM'] - get_partition_allocated_RAM(p, conn_manager)), 1), 0),
                    'ram_total': PARTITION_MAX_RES[p]['RAM'],
 
-                   'gpu_name': get_node_GPU_name(get_node_info(PARTION_TO_NODE[p][0], conn_manager)),
+                   'gpu_name': get_node_GPU_name(get_node_info(PARTITION_TO_NODE[p][0], conn_manager)),
                    'gpu_free': PARTITION_MAX_RES[p]['GPU'] - get_partition_allocated_GPU(p, conn_manager, locked_usage),
                    'gpu_total': PARTITION_MAX_RES[p]['GPU'],
                    'nodes': {}
@@ -301,7 +318,7 @@ def aggregate_partition_info(conn_manager: RemoteConnectionManager, locked_usage
         info[p]['ram_free_percentage'] = calculate_percentage(info[p]['ram_free'], info[p]['ram_total'])
         info[p]['gpu_free_percentage'] = calculate_percentage(info[p]['gpu_free'], info[p]['gpu_total'])
 
-        for n in PARTION_TO_NODE[p]:
+        for n in PARTITION_TO_NODE[p]:
             node_info = get_node_info(n, conn_manager)
             node_name = "".join(x for x in n if x.isalpha())
             info[p]['nodes'][n] = {'state': get_node_state(n, conn_manager),
@@ -333,12 +350,12 @@ def aggregate_user_info(conn_manager: RemoteConnectionManager) -> dict:
     user_running_set = set()
 
     # get all the users that have running jobs on the cluster
-    for partition in PARTION_TO_NODE.keys():
+    for partition in PARTITION_TO_NODE.keys():
         user_queue_job_info = get_partition_queue_job_info(partition, conn_manager, "UserName")
         user_running_set.update(user_queue_job_info)
 
     for user in user_running_set:
-        for partition in PARTION_TO_NODE.keys():
+        for partition in PARTITION_TO_NODE.keys():
             info[user]['cpu_allocated'] += get_user_allocated_CPU_cores_on_partition(partition, conn_manager, user)
             info[user]['ram_allocated'] += get_user_allocated_RAM_on_partition(partition, conn_manager, user)
             info[user]['gpu_allocated'] += get_user_allocated_GPU_on_partition(partition, conn_manager, user, False)
